@@ -1,2 +1,3 @@
-# story point discussion
+# A Planning Poker
 
+Estimation using Planning Poker!
