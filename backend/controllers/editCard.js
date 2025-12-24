@@ -1,8 +1,9 @@
 import { rooms } from "../io.js";
+import { io } from "../server.js";
 import { validateRoomExists } from "./common.js";
 
 export function cardController(socket) {
-  socket.on("deleteCard", (data) => {
+  socket.on("deleteCard", (data, res) => {
     if (!validateRoomExists(socket, data.roomId)) return;
 
     try {
@@ -14,18 +15,20 @@ export function cardController(socket) {
           rooms[data.roomId].cards.splice(cardIndex, 1);
         }
       });
-      socket.to(data.roomId).emit("cardsDeleted", { cards: data.cards });
-      socket.emit("cardsDeleted", { cards: data.cards });
+      io.to(data.roomId).emit("cardsDeleted", { cards: data.cards });
+      // socket.emit("cardsDeleted", { cards: data.cards });
+      res({ success: true });
     } catch (error) {
       console.error("Error deleting cards:", error);
       socket.emit("error", {
         message: "Failed to delete cards",
         error: error.message,
       });
+      res({ success: false, error: "Error deleting cards" });
     }
   });
 
-  socket.on("addCard", (data) => {
+  socket.on("addCard", (data, res) => {
     if (!validateRoomExists(socket, data.roomId)) return;
     try {
       data.cards.forEach((card) => {
@@ -38,14 +41,15 @@ export function cardController(socket) {
         }
       });
 
-      socket.to(data.roomId).emit("cardsAdded", { cards: data.cards });
-      socket.emit("cardsAdded", { cards: data.cards });
+      io.to(data.roomId).emit("cardsAdded", { cards: data.cards });
+      res({ success: true });
     } catch (error) {
       console.error("Error adding card:", error);
       socket.emit("error", {
         message: "Failed to add card",
         error: error.message,
       });
+      res({ success: false, error: "Error adding card" });
     }
   });
 }

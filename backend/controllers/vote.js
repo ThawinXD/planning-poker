@@ -9,14 +9,14 @@ function result(socket, data, estimations) {
     else votes.set(vote, votes.get(vote) + 1);
   }
 
-  socket.emit("estimationResult", { votes: Object.fromEntries(votes) });
-  socket
-    .to(data.roomId)
-    .emit("estimationResult", { votes: Object.fromEntries(votes) });
+  // socket.emit("estimationResult", { votes: Object.fromEntries(votes) });
+  io.to(data.roomId).emit("estimationResult", {
+    votes: Object.fromEntries(votes),
+  });
 }
 
 export function voteController(socket) {
-  socket.on("startVote", (data) => {
+  socket.on("startVote", (data, res) => {
     try {
       if (!validateRoomExists(socket, data.roomId)) return;
 
@@ -27,23 +27,28 @@ export function voteController(socket) {
 
       rooms[data.roomId].estimations = { revealed: false, votes: new Map() };
 
-      socket.to(data.roomId).emit("voteStarted");
-      console.log(`Vote started in room ${data.roomId} by host ${data.user.id}`);
+      io.to(data.roomId).emit("voteStarted");
+      res({ success: true });
+      console.log(
+        `Vote started in room ${data.roomId} by host ${data.user.id}`
+      );
     } catch (error) {
       console.error("Error in startVote:", error);
       socket.emit("error", {
         message: "Failed to start vote",
         error: error.message,
       });
+      res({ success: false, error: "Failed to start vote" });
     }
   });
 
-  socket.on("vote", (data) => {
+  socket.on("vote", (data, res) => {
     try {
       if (!validateRoomExists(socket, data.roomId)) return;
 
       const hasRevealed = rooms[data.roomId].estimations.revealed;
-      const hasVoted = rooms[data.roomId].estimations.votes.get(data.user.id) !== undefined;
+      const hasVoted =
+        rooms[data.roomId].estimations.votes.get(data.user.id) !== undefined;
 
       rooms[data.roomId].estimations.votes.set(data.user.id, data.vote);
       if (!hasRevealed && !hasVoted)
@@ -57,16 +62,18 @@ export function voteController(socket) {
       }
 
       console.log(`User ${data.user.id} voted in room ${data.roomId}`);
+      res({ success: true });
     } catch (error) {
       console.error("Error in vote:", error);
       socket.emit("error", {
         message: "Failed to record vote",
         error: error.message,
       });
+      res({ success: false, error: "Failed to record vote" });
     }
   });
 
-  socket.on("revealVotes", (data) => {
+  socket.on("revealVotes", (data, res) => {
     try {
       if (!validateRoomExists(socket, data.roomId)) return;
       if (rooms[data.roomId].host !== data.user.id) {
@@ -75,22 +82,28 @@ export function voteController(socket) {
       }
 
       let estimations = [];
-      for (const [userId, vote] of rooms[data.roomId].estimations.votes.entries()) {
-        name = rooms[data.roomId].users.find((user) => user.id === userId)?.name || "Unknown";
+      for (const [userId, vote] of rooms[
+        data.roomId
+      ].estimations.votes.entries()) {
+        name =
+          rooms[data.roomId].users.find((user) => user.id === userId)?.name ||
+          "Unknown";
         estimations.push({ name, vote });
       }
-      socket.to(data.roomId).emit("votesRevealed", { estimations });
+      io.to(data.roomId).emit("votesRevealed", { estimations });
       rooms[data.roomId].estimations.revealed = true;
       result(socket, data, rooms[data.roomId].estimations);
       console.log(
         `Votes revealed in room ${data.roomId} by host ${data.user.id}`
       );
+      res({ success: true });
     } catch (error) {
       console.error("Error in revealVotes:", error);
       socket.emit("error", {
         message: "Failed to reveal votes",
         error: error.message,
       });
+      res({ success: false, error: "Failed to reveal votes" });
     }
   });
 }
