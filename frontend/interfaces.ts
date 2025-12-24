@@ -7,4 +7,5 @@ export interface IResRoom {
   success: boolean;
   roomId?: string;
   error?: string;
+  action?: number;
 }

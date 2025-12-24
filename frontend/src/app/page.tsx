@@ -8,6 +8,7 @@ import { AppDispatch, useAppSelector } from "../lib/store";
 import { useDispatch } from "react-redux";
 import { setUserId, setUserName as setUserNameAction } from "../lib/features/user";
 import socket from "../socket";
+import TextfieldName from "../components/TextfieldName";
 
 export default function Home() {
   const router = useRouter();
@@ -37,6 +38,8 @@ export default function Home() {
       socket.connect();
     }
 
+    setUserName(user.name || "");
+
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
@@ -61,7 +64,7 @@ export default function Home() {
     socket.emit("createRoom", user, (res: IResRoom) => {
       if (res.success) {
         console.log("Room created with ID:", res.roomId);
-        router.replace(`/room/#${res.roomId}`);
+        router.push(`/room/#${res.roomId}`);
       } else {
         console.error("Error creating room:", res.error);
       }
@@ -86,28 +89,11 @@ export default function Home() {
       <p>
         Enter your user name below to get started:
       </p>
-      <form
-        className="my-8"
-        onSubmit={(e) => {
-          e.preventDefault();
-          submitName(userName);
-        }}
-      >
-        <TextField
-          variant="outlined"
-          label="User Name"
-          type="text"
-          fullWidth
-          margin="normal"
-          sx={{
-            '& .MuiInputBase-root': { backgroundColor: 'rgb(241 245 249)' },
-          }}
-          value={userName}
-          onChange={(e) => {
-            setUserName(e.target.value);
-          }}
-        />
-      </form>
+      <TextfieldName
+        name={userName}
+        setName={setUserName}
+        submitName={submitName}
+      />
       <div className="my-8 flex flex-row">
         <Button
           variant="contained"
