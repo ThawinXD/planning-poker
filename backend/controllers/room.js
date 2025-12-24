@@ -45,18 +45,14 @@ export function roomController(socket) {
     if (!validateRoomExists(socket, user.roomId)) return;
 
     try {
-      if (
-        rooms[user.roomId].users.some((u) => u.name === user.name)
-      ) {
+      if (rooms[user.roomId].users.some((u) => u.name === user.name)) {
         socket.emit("error", {
           message: "Username already taken in this room",
         });
         res({ success: false, error: "Username already taken in this room" });
         return;
       }
-      if (
-        rooms[user.roomId].users.some((u) => u.id === user.id)
-      ) {
+      if (rooms[user.roomId].users.some((u) => u.id === user.id)) {
         socket.emit("error", { message: "User already in room" });
         res({ success: false, error: "User already in room" });
         return;
