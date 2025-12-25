@@ -24,8 +24,11 @@ export function roomController(socket) {
         users: [{ id: user.id, name: user.name }],
       };
       rooms[roomId].host = user.id;
-      rooms[roomId].estimations = {};
+      rooms[roomId].estimations = new Map();;
       rooms[roomId].cards = tempCards;
+      rooms[roomId].revealed = false;
+      rooms[roomId].resultCard = null;
+      rooms[roomId].canVote = false;
       socket.data = { roomId: roomId, name: user.name };
       socket.join(roomId);
       // socket.emit("roomCreated", { roomId });
@@ -49,7 +52,6 @@ export function roomController(socket) {
 
     try {
       console.log("user", data.user);
-      console.log("rooms[data.roomId].users", rooms[data.roomId].users);
       if (rooms[data.roomId].users.some((u) => u.id === data.user.id && u.name === data.user.name)) {
         socket.emit("error", { message: "User already in room" });
         res({ success: true, action: 1, error: "User already in room" });
@@ -83,7 +85,7 @@ export function roomController(socket) {
       socket.join(data.roomId);
       socket
         .to(data.roomId)
-        .emit("userJoined", { id: data.user.id, name: data.user.name });
+        .emit("userJoined", { name: data.user.name });
       console.log(`User ${data.user.name} joined room ${data.roomId}`);
       res({ success: true });
     } catch (error) {
@@ -93,6 +95,50 @@ export function roomController(socket) {
         error: error.message,
       });
       res({ success: false, error: "Error joining room" });
+    }
+  });
+
+  socket.on("getRoomData", (roomId, res) => {
+    if (!validateRoomExists(socket, roomId)) {
+      res({ success: false, error: "Room does not exist" });
+      return;
+    }
+
+    try {
+      let estimations = [];
+      if (rooms[roomId].estimations.length !== 0 && rooms[roomId].revealed) {
+        estimations = Array.from(rooms[roomId].estimations, ([userId, vote]) => {
+          const name =
+            rooms[roomId].users.find((user) => user.id === userId)?.name ||
+            "Unknown";
+          return { name, vote };
+        });
+      }
+
+      // console.log("estimations", estimations);
+
+      const room = rooms[roomId];
+      let result = {
+        roomId: roomId,
+        users: room.users? room.users.map(user => {
+          return { name: user.name }
+        }) : [],
+        host: rooms[roomId].users.find(user => user.id === room.host)?.name || null,
+        cards: room.cards,
+        revealed: room.revealed,
+        estimations: estimations,
+        resultCard: room.resultCard,
+        canVote: room.canVote,
+      }
+      res({ success: true, room: result });
+    }
+    catch (error) {
+      console.error("Error getting room data:", error);
+      socket.emit("error", {
+        message: "Failed to get room data",
+        error: error.message,
+      });
+      res({ success: false, error: "Error getting room data" });
     }
   });
 }

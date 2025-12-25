@@ -22,13 +22,11 @@ const io = new Server(server, {
 
 export { app, server, io };
 
-// Initialize socket handlers after exports
 import { initializeSocketHandlers, rooms, users } from './io.js';
 initializeSocketHandlers(io);
 
-// Start a lightweight REPL so you can type functions in the terminal
 const r = repl.start({ prompt: 'server> ', useGlobal: false });
-// Useful runtime bindings
+
 r.context.app = app;
 r.context.server = server;
 r.context.io = io;
@@ -36,7 +34,6 @@ r.context.env = { PORT, NODE_ENV, FRONTEND_URL };
 r.context.rooms = rooms;
 r.context.users = users;
 
-// Convenience commands
 r.context.cmd = {
   listRooms: () => Object.keys(rooms),
   getRoom: (roomId) => rooms[roomId],

@@ -8,7 +8,7 @@ export const users = new Map();
 
 export function initializeSocketHandlers(io) {
   function cleanupSocket(socket) {
-    const { roomId, userId } = { roomId: socket.data.roomId, userId: socket.id };
+    const { roomId, userId, userName } = { roomId: socket.data.roomId, userId: socket.id, userName: socket.data.name };
     if (!userId) return;
     users.delete(socket.id);
 
@@ -29,7 +29,7 @@ export function initializeSocketHandlers(io) {
       console.log(`Room ${roomId} closed as host disconnected`);
       delete rooms[roomId];
     } else {
-      socket.to(roomId).emit("userLeft", { userId });
+      socket.to(roomId).emit("userLeft", { userName });
       if (room.users.length === 0) {
         delete rooms[roomId];
       }
