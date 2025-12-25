@@ -8,6 +8,8 @@ import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import TextfieldName from "@/src/components/TextfieldName";
 import AlertDialog from "@/src/components/DialogMe";
+import { Button } from "@mui/material";
+import RoomPageIn from "@/src/components/Room";
 
 export default function RoomPage() {
   const user: IUser = useAppSelector((state) => state.userSlice.user as IUser);
@@ -39,6 +41,7 @@ export default function RoomPage() {
 
       if (!user.name || user.name === "") {
         setShowNamePrompt(true);
+        return;
       }
 
       if (roomId) {
@@ -114,41 +117,54 @@ export default function RoomPage() {
 
   function handleAlertAgree() {
     setShowAlert(false);
-    router.push("/");
+    router.replace("/");
   }
 
   return (
-    <>
+    <div className="flex flex-col">
+      {/* <Button
+        variant="contained"
+        color="primary"
+        onClick={() => {
+          dispatch(setUserName(""));
+        }}
+      >
+        Reset Name
+      </Button> */}
       {showNamePrompt && (
-        <div className="items-center justify-center fixed inset-0 bg-gray-800 bg-opacity-75 z-50 flex">
-          <TextfieldName
-            name={name}
-            setName={setName}
-            submitName={submitName}
-          />
+        <div className="flex absolute items-center justify-center inset-0 bg-gray-800 bg-opacity-75 z-50">
+          <div className="flex flex-col p-4 m-4">
+
+            <h1 className="text-xl">
+              Please enter your display name to join the room.
+            </h1>
+            <TextfieldName
+              name={name}
+              setName={setName}
+              submitName={submitName}
+            />
+          </div>
         </div>
       )}
       <div>
-      <p>Room Page</p>
-      {roomId ? (
-        <p>Room ID: {roomId}</p>
-      ) : (
-        <p>No Room ID found in URL.</p>
-      )}
-      {showAlert && (
-        // <Alert severity="error" onClose={() => {
-        //   setShowAlert(false)
-        //   router.push("/");
-        // }}>
-        //   Please provide a valid Room ID in the URL or Exited one.
-        // </Alert>
-        <AlertDialog
-          title="Invalid Room"
-          description="Please provide a valid Room ID in the URL or Exited one."
-          onAgree={handleAlertAgree}
-        />
-      )}
+        {roomId ? (
+          <p>Room ID: {roomId}</p>
+        ) : (
+          <p>No Room ID found in URL.</p>
+        )}
+        {showAlert && (
+          <AlertDialog
+            title="Invalid Room"
+            description="Please provide a valid Room ID in the URL or Exited one."
+            onAgree={handleAlertAgree}
+          />
+        )}
       </div>
-    </>
+      <RoomPageIn
+        user={user}
+        roomId={roomId || ""}
+      />
+
+    </div>
   );
 }
