@@ -3,10 +3,12 @@ import { IUser } from "@/interfaces";
 
 type UserState = {
   user: IUser | null;
+  url: string | null;
 };
 
 const initialState: UserState = {
   user: null,
+  url: null,
 };
 
 const userSlice = createSlice({
@@ -35,8 +37,11 @@ const userSlice = createSlice({
     clearUser(state) {
       state.user = null;
     },
+    setURL(state, action: PayloadAction<string>) {
+      state.url = action.payload;
+    },
   },
 });
 
-export const { setUserId, setUserName, setUser, clearUser } = userSlice.actions;
+export const { setUserId, setUserName, setUser, clearUser, setURL } = userSlice.actions;
 export default userSlice.reducer;

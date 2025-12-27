@@ -3,7 +3,7 @@ import { AppDispatch, useAppSelector } from "@/src/lib/store";
 import { useEffect, useState } from "react";
 import { IUser, IResRoom } from "@/interfaces";
 import socket from "@/src/socket";
-import { setUserId, setUserName } from "@/src/lib/features/user";
+import { setURL, setUserId, setUserName } from "@/src/lib/features/user";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import TextfieldName from "@/src/components/TextfieldName";
@@ -44,21 +44,29 @@ export default function RoomPage() {
         return;
       }
 
-      if (roomId) {
-        socket.emit("joinRoom", { roomId: roomId, user: user }, (res: IResRoom) => {
-          if (res.success) {
-            console.log("Joined room with ID:", roomId);
-          } else {
-            console.error("Error joining room:", res.error);
-            if (res.action === 0) {
-              setShowNamePrompt(true);
-            }
-            else {
-              setShowAlert(true);
-            }
-          }
-        });
+      if (!roomId) {
+        // console.error("No room ID found in URL.");
+        setShowAlert(true);
+        return;
       }
+      else {
+        setShowAlert(false);
+      }
+
+      socket.emit("joinRoom", { roomId: roomId, user: user }, (res: IResRoom) => {
+        if (res.success) {
+          console.log("Joined room with ID:", roomId);
+          dispatch(setURL(roomId?`${window.location.origin}/room/#${roomId}`:""));
+        } else {
+          console.error("Error joining room:", res.error);
+          if (res.action === 0) {
+            setShowNamePrompt(true);
+          }
+          else {
+            setShowAlert(true);
+          }
+        }
+      });
     }
 
     function onDisconnect() {
