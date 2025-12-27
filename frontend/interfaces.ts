@@ -12,6 +12,12 @@ export interface IResRoom {
 
 export interface IRoomUser {
   name: string;
+  isVoted: boolean;
+}
+
+export interface IEstimation {
+  name: string;
+  vote: string;
 }
 
 export interface IRoom {
@@ -19,8 +25,12 @@ export interface IRoom {
   host: string;
   users: IRoomUser[];
   cards: string[];
-  revealed: boolean;
-  estimations: { name: string; vote: string }[];
-  resultCard: [string, number][];
   canVote: boolean;
+  revealed: boolean;
+  estimations: IEstimation[];
+  voteResult: [string, number][];
+}
+
+export interface IVoteResult {
+  votes: [string, number][];
 }

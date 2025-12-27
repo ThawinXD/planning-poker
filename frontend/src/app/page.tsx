@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { IResRoom, IUser } from "@/interfaces";
 import { AppDispatch, useAppSelector } from "../lib/store";
 import { useDispatch } from "react-redux";
-import { setUserId, setUserName as setUserNameAction } from "../lib/features/user";
+import { setUserId, setUserName as setUserNameAction, setURL } from "../lib/features/user";
 import socket from "../socket";
 import TextfieldName from "../components/TextfieldName";
 
@@ -38,7 +38,7 @@ export default function Home() {
       socket.connect();
     }
 
-    setUserName(user.name || "");
+    setUserName(user ? user.name || "" : "");
 
     return () => {
       socket.off("connect", onConnect);
@@ -64,6 +64,7 @@ export default function Home() {
     socket.emit("createRoom", user, (res: IResRoom) => {
       if (res.success) {
         console.log("Room created with ID:", res.roomId);
+        dispatch(setURL(res.roomId?`${window.location.origin}/room/#${res.roomId}`:""));
         router.push(`/room/#${res.roomId}`);
       } else {
         console.error("Error creating room:", res.error);
@@ -81,7 +82,7 @@ export default function Home() {
   // }, [user]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8 m-8">
+    <div className="flex flex-col items-center justify-center h-screen">
       <h1>Planning Poker Tool</h1>
       <p>
         Welcome to the Planning Poker Tool! Create a new room to start a planning poker session or join an existing room to participate with URL or room code.
@@ -94,7 +95,7 @@ export default function Home() {
         setName={setUserName}
         submitName={submitName}
       />
-      <div className="my-8 flex flex-row">
+      <div className="my-8 flex flex-row p-4 gap-4">
         <Button
           variant="contained"
           onClick={(e) => {
