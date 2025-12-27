@@ -21,10 +21,10 @@ export function roomController(socket) {
     try {
       const roomId = Math.random().toString(36).substring(2, 10);
       rooms[roomId] = {
-        users: [{ id: user.id, name: user.name }],
+        users: [{ id: user.id, name: user.name, isVoted: false }],
       };
       rooms[roomId].host = user.id;
-      rooms[roomId].estimations = new Map();;
+      rooms[roomId].estimations = new Map();
       rooms[roomId].cards = tempCards;
       rooms[roomId].revealed = false;
       rooms[roomId].resultCard = null;
@@ -51,8 +51,12 @@ export function roomController(socket) {
     }
 
     try {
-      console.log("user", data.user);
-      if (rooms[data.roomId].users.some((u) => u.id === data.user.id && u.name === data.user.name)) {
+      // console.log("user", data.user);
+      if (
+        rooms[data.roomId].users.some(
+          (u) => u.id === data.user.id && u.name === data.user.name
+        )
+      ) {
         socket.emit("error", { message: "User already in room" });
         res({ success: true, action: 1, error: "User already in room" });
         console.log(`User ${data.user.name} already in room ${data.roomId}`);
@@ -63,7 +67,11 @@ export function roomController(socket) {
         socket.emit("error", {
           message: "Username already taken in this room",
         });
-        res({ success: false, action: 0, error: "Username already taken in this room" });
+        res({
+          success: false,
+          action: 0,
+          error: "Username already taken in this room",
+        });
         return;
       }
 
@@ -76,6 +84,7 @@ export function roomController(socket) {
       rooms[data.roomId].users.push({
         id: data.user.id,
         name: data.user.name,
+        isVoted: false,
       });
       socket.data = {
         roomId: data.roomId,
@@ -85,7 +94,7 @@ export function roomController(socket) {
       socket.join(data.roomId);
       socket
         .to(data.roomId)
-        .emit("userJoined", { name: data.user.name });
+        .emit("userJoined", { name: data.user.name, isVoted: false });
       console.log(`User ${data.user.name} joined room ${data.roomId}`);
       res({ success: true });
     } catch (error) {
@@ -107,12 +116,15 @@ export function roomController(socket) {
     try {
       let estimations = [];
       if (rooms[roomId].estimations.length !== 0 && rooms[roomId].revealed) {
-        estimations = Array.from(rooms[roomId].estimations, ([userId, vote]) => {
-          const name =
-            rooms[roomId].users.find((user) => user.id === userId)?.name ||
-            "Unknown";
-          return { name, vote };
-        });
+        estimations = Array.from(
+          rooms[roomId].estimations,
+          ([userId, vote]) => {
+            const name =
+              rooms[roomId].users.find((user) => user.id === userId)?.name ||
+              "Unknown";
+            return { name, vote };
+          }
+        );
       }
 
       // console.log("estimations", estimations);
@@ -120,25 +132,81 @@ export function roomController(socket) {
       const room = rooms[roomId];
       let result = {
         roomId: roomId,
-        users: room.users? room.users.map(user => {
-          return { name: user.name }
-        }) : [],
-        host: rooms[roomId].users.find(user => user.id === room.host)?.name || null,
+        users: room.users
+          ? room.users.map((user) => {
+              return { name: user.name, isVoted: user.isVoted };
+            })
+          : [],
+        host:
+          rooms[roomId].users.find((user) => user.id === room.host)?.name ||
+          null,
         cards: room.cards,
         revealed: room.revealed,
         estimations: estimations,
         resultCard: room.resultCard,
         canVote: room.canVote,
-      }
+      };
       res({ success: true, room: result });
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error getting room data:", error);
       socket.emit("error", {
         message: "Failed to get room data",
         error: error.message,
       });
       res({ success: false, error: "Error getting room data" });
+    }
+  });
+
+  socket.on("kickUser", (name, res) => {
+    const { roomId } = socket.data;
+    if (!validateRoomExists(socket, roomId)) {
+      res({ success: false, error: "Room does not exist" });
+      return;
+    }
+
+    try {
+      const userToKick = rooms[roomId].users.find((user) => user.name === name);
+      if (!userToKick) {
+        res({ success: false, error: "User not found in room" });
+        return;
+      }
+      rooms[roomId].users = rooms[roomId].users.filter(
+        (user) => user.name !== name
+      );
+      socket.to(roomId).emit("userKicked", { name: name });
+      console.log(`User ${name} was kicked from room ${roomId}`);
+      res({ success: true });
+    } catch (error) {
+      console.error("Error kicking user:", error);
+      socket.emit("error", {
+        message: "Failed to kick user",
+        error: error.message,
+      });
+      res({ success: false, error: "Error kicking user" });
+    }
+  });
+
+  socket.on("leaveRoom", (res) => {
+    const { roomId, name, id } = socket.data;
+    if (!validateRoomExists(socket, roomId)) {
+      res({ success: false, error: "Room does not exist" });
+      return;
+    }
+    try {
+      socket.leave(roomId);
+      rooms[roomId].users = rooms[roomId].users.filter(
+        (user) => user.id !== id
+      );
+      socket.to(roomId).emit("userLeft", { name: name });
+      console.log(`User ${name} left room ${roomId}`);
+      res({ success: true });
+    } catch (error) {
+      console.error("Error leaving room:", error);
+      socket.emit("error", {
+        message: "Failed to leave room",
+        error: error.message,
+      });
+      res({ success: false, error: "Error leaving room" });
     }
   });
 }

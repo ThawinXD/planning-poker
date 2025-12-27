@@ -13,7 +13,7 @@ function result(socket, data, estimations) {
 
   // socket.emit("estimationResult", { votes: Object.fromEntries(votes) });
   rooms[data.roomId].resultCard = sortedVotes;
-  io.to(data.roomId).emit("resultCard", {
+  io.to(data.roomId).emit("voteResult", {
     votes: sortedVotes,
   });
   console.log(sortedVotes);
@@ -57,12 +57,10 @@ export function voteController(socket) {
         res({ success: false, error: "Room does not exist" });
         return;
       }
-
       if (!rooms[data.roomId].canVote) {
         res({ success: false, error: "Voting is not allowed at this time" });
         return;
       }
-
       if (data.vote === null || data.vote === undefined) {
         res({ success: false, error: "Invalid vote value" });
         return;
@@ -72,12 +70,16 @@ export function voteController(socket) {
       const hasVoted =
         rooms[data.roomId].estimations.get(data.user.id) !== undefined;
 
+      rooms[data.roomId].users.find(user => user.id === data.user.id).isVoted = true;
       rooms[data.roomId].estimations.set(data.user.id, data.vote);
       if (!hasRevealed && !hasVoted)
         socket.to(data.roomId).emit("userVoted", { name: data.user.name });
       if (hasRevealed) {
-        socket.to(data.roomId).emit("changeVote", {
-          name: data.user.name,
+        socket.to(data.roomId).emit("changeVoted", {
+          user: {
+            name: data.user.name,
+            isVoted: true,
+          },
           vote: data.vote,
         });
         result(socket, data, rooms[data.roomId].estimations);
@@ -115,10 +117,7 @@ export function voteController(socket) {
       }
       console.log(estimations);
 
-      io.to(data.roomId).emit(
-        "votesRevealed",
-        estimations
-      );
+      io.to(data.roomId).emit("voteReviewed", estimations);
       rooms[data.roomId].revealed = true;
       result(socket, data, rooms[data.roomId].estimations);
       console.log(
@@ -146,13 +145,14 @@ export function voteController(socket) {
         socket.emit("error", { message: "Only the host can reset vote" });
         return;
       }
+      rooms[data.roomId].users.forEach((user) => {
+        user.isVoted = false;
+      });
       rooms[data.roomId].estimations = new Map();
       rooms[data.roomId].revealed = false;
       rooms[data.roomId].canVote = false;
       io.to(data.roomId).emit("voteReset");
-      console.log(
-        `Vote reset in room ${data.roomId} by host ${data.user.id}`
-      );
+      console.log(`Vote reset in room ${data.roomId} by host ${data.user.id}`);
       res({ success: true });
     } catch (error) {
       console.error("Error in resetVote:", error);
