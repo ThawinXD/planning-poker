@@ -155,11 +155,6 @@ export default function RoomPage() {
         </div>
       )}
       <div>
-        {roomId ? (
-          <p>Room ID: {roomId}</p>
-        ) : (
-          <p>No Room ID found in URL.</p>
-        )}
         {showAlert && (
           <AlertDialog
             title="Invalid Room"
