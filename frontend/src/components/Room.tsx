@@ -206,6 +206,23 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
     setShowEditCards(!showEditCards);
   }
 
+  function handleAddCard(card: string) {
+    console.log("Add card:", card);
+    // Implement add card logic here
+  }
+
+  function handleUpdateCard(cards: string[]) {
+    console.log("Update cards:", cards);
+
+    socket.emit("updateCards", { roomId, cards }, (res: IResRoom) => {
+      if (res.success) {
+        setCards(cards);
+      } else {
+        console.error("Error updating cards:", res.error);
+      }
+    });
+  }
+
   function deleteCard(card: string) {
     console.log("Delete card:", card);
     // Implement delete card logic here
