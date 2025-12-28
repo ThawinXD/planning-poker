@@ -188,9 +188,14 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
       alert("Voting is not allowed at this time.");
       return;
     }
+
+    console.log(`vote card: ${card}`);
+
     socket.emit("vote", { roomId, user, vote: card }, (res: IResRoom) => {
       if (res.success) {
         setSelectCard(card);
+
+        if (!isRevealed) return;
         setEstimations(prev => {
           const otherEstimations = prev.filter(e => e.name !== user.name);
           return [...otherEstimations, { name: user.name, vote: card }];
@@ -281,7 +286,7 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
         : ""
       }
       <CardHolder
-        card={cards}
+        cards={cards}
         canVote={canVote}
         onSelectCard={(card: string) => {
           handleVote(card)
