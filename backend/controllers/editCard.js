@@ -76,4 +76,21 @@ export function cardController(socket) {
       res({ success: false, error: "Error updating cards" });
     }
   });
+
+  socket.on("getCards", (data, res) => {
+    try {
+      if (!validateRoomExists(socket, data.roomId)) {
+        res({ success: false, error: "Room does not exist" });
+        return;
+      }
+      res({ success: true, cards: rooms[data.roomId].cards });
+    } catch (error) {
+      console.error("Error in getCards:", error);
+      socket.emit("error", {
+        message: "Failed to get cards",
+        error: error.message,
+      });
+      res({ success: false, error: "Failed to get cards" });
+    }
+  });
 }
