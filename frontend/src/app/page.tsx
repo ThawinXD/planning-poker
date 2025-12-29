@@ -66,8 +66,8 @@ export default function Home() {
     socket.emit("createRoom", user, (res: IResRoom) => {
       if (res.success) {
         console.log("Room created with ID:", res.roomId);
-        dispatch(setURL(res.roomId?`${window.location.origin}/room/#${res.roomId}`:""));
-        router.push(`/room/#${res.roomId}`);
+        dispatch(setURL(res.roomId?`${window.location.origin}/room#${res.roomId}`:""));
+        router.push(`/room#${res.roomId}`);
       } else {
         console.error("Error creating room:", res.error);
       }
@@ -84,7 +84,7 @@ export default function Home() {
   // }, [user]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col items-center justify-center h-[85vh]">
       <h1>Planning Poker Tool</h1>
       <p>
         Welcome to the Planning Poker Tool! Create a new room to start a planning poker session or join an existing room to participate with URL or room code.

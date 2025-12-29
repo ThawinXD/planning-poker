@@ -26,10 +26,21 @@ export default function RoomPage() {
       const hash = typeof window !== "undefined" ? window.location.hash : "";
       setRoomId(hash ? hash.substring(1) : null);
     };
+    const handleLeaveRoom = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+
+      if (roomId && user) {
+        socket.emit("leaveRoom", { roomId: roomId, user: user });
+      }
+    }
 
     readHash();
     window.addEventListener("hashchange", readHash);
-    return () => window.removeEventListener("hashchange", readHash);
+    window.addEventListener("beforeunload", handleLeaveRoom);
+    return () => {
+      window.removeEventListener("hashchange", readHash);
+      window.removeEventListener("beforeunload", handleLeaveRoom);
+    };
   }, []);
 
   useEffect(() => {
