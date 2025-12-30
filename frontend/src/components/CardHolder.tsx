@@ -5,7 +5,7 @@ import Card from "./Card";
 
 
 export default function CardHolder(
-  { cards, canVote, onSelectCard, showEditCards, onChangeTextCard, updateCards }: { cards: string[]; canVote: boolean; onSelectCard: Function; showEditCards: boolean; onChangeTextCard: Function; updateCards?: Function }) {
+  { cards, canVote, onSelectCard, showEditCards, updateCards }: { cards: string[]; canVote: boolean; onSelectCard: Function; showEditCards: boolean; updateCards?: Function }) {
   const [inCards, setCards] = useState<string[]>(cards);
   const [selectedCard, setSelectedCard] = useState<string>("");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -18,8 +18,8 @@ export default function CardHolder(
   );
 
   useEffect(() => {
-    console.log("Cards updated:");
-    console.log(inCards);
+    // console.log("Cards updated:");
+    // console.log(inCards);
   }, [inCards]);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function CardHolder(
 
   // keep local cards in sync when parent prop changes
   useEffect(() => {
-    console.log("init cards", cards);
+    // console.log("init cards", cards);
     setCards(cards);
   }, [cards]);
 
@@ -62,61 +62,89 @@ export default function CardHolder(
     }
   }
 
+  function onChangeTextCard(oldCard: string, newCard: string) {
+    if (showEditCards) {
+      setCards(prev => prev.map(c => c === oldCard ? newCard : c));
+    }
+  }
+
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext
-        items={inCards}
-        strategy={horizontalListSortingStrategy}
-        disabled={!showEditCards}
+    <div>
+      {!showEditCards && !canVote && (
+        <p className="text-center text-gray-400 mb-4">Wait for the host to start the voting.</p>
+      )}
+      {!showEditCards && canVote && (
+        <p className="text-center text-gray-400 mb-4">Select a card to vote.</p>
+      )}
+      {showEditCards && (
+        <p className="text-center text-gray-400 mb-4">Drag and drop cards to reorder them. Click "+" to add a new card.</p>
+      )}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
       >
-        <div className="flex flex-row flex-wrap gap-4 justify-center">
-          {
-            inCards.map((c) => (
-              <Card
-                card={c}
-                key={c}
-                canVote={canVote}
-                onSelectCard={() => {
-                  if (!canVote) return;
-                  setSelectedCard(c);
-                  onSelectCard(c);
+        <SortableContext
+          items={inCards}
+          strategy={horizontalListSortingStrategy}
+          disabled={!showEditCards}
+        >
+          <div className="flex flex-row flex-wrap gap-4 justify-center">
+            {
+              inCards.map((c) => (
+                <Card
+                  card={c}
+                  key={inCards.indexOf(c)}
+                  canVote={canVote}
+                  onSelectCard={() => {
+                    if (!canVote) return;
+                    setSelectedCard(c);
+                    onSelectCard(c);
+                  }}
+                  showEditCards={showEditCards}
+                  onChangeTextCard={(newText: string) => onChangeTextCard(c, newText)}
+                  deleteCard={() => deleteCard(c)}
+                  isSelected={selectedCard === c}
+                />
+              ))
+            }
+            {showEditCards && (
+              <div
+                className="w-16 h-24 flex items-center justify-center rounded-lg outline-2 outline-green-400 outline-dashed relative hover:scale-105 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  addCard();
                 }}
-                showEditCards={showEditCards}
-                onChangeTextCard={(newText: string) => onChangeTextCard(c, newText)}
-                deleteCard={() => deleteCard(c)}
-                isSelected={selectedCard === c}
-              />
-            ))
-          }
-          {showEditCards && (
-            <div
-              className="w-16 h-24 flex items-center justify-center rounded-lg outline-2 outline-green-400 outline-dashed relative hover:scale-105 cursor-pointer"
-              onClick={(e) => {
-                e.preventDefault();
-                addCard();
-              }}
-            >
-              <span className="text-4xl font-bold text-green-400">+</span>
-            </div>
-          )}
-          {showEditCards && (
-            <div
-              className="w-16 h-24 flex items-center justify-center rounded-lg outline-2 outline-blue-500 outline-dashed relative hover:scale-105 cursor-pointer"
-              onClick={(e) => {
-                e.preventDefault();
-                updateCards && updateCards(inCards);
-              }}
-            >
-              <span className="text-4xl font-bold text-blue-500">✓</span>
-            </div>
-          )}
-        </div>
-      </SortableContext>
-    </DndContext>
+              >
+                <span className="text-4xl text-green-400">+</span>
+              </div>
+            )}
+            {showEditCards && (
+              <div
+                className="w-16 h-24 flex items-center justify-center rounded-lg outline-2 outline-white outline-dashed relative hover:scale-105 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCards(cards);
+                }}
+              >
+                <span className="text-4xl text-white">↻</span>
+              </div>
+            )}
+            {showEditCards && (
+              <div
+                className="w-16 h-24 flex items-center justify-center rounded-lg outline-2 outline-blue-500 outline-dashed relative hover:scale-105 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  updateCards && updateCards(inCards);
+                }}
+              >
+                <span className="text-4xl text-blue-500">✓</span>
+              </div>
+            )}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </div>
   )
 }

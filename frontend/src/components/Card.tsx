@@ -14,11 +14,18 @@ export default function Card(
   };
 
   const [text, settext] = useState<string>(card);
+  const [flipped, setFlipped] = useState<boolean>(true);
+
+  useEffect(() => {
+    setFlipped(!canVote && !showEditCards);
+  }, [canVote, showEditCards]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (text !== card) {
         onChangeTextCard(text);
+        setFlipped(false);
+        setTimeout(() => setFlipped(!canVote && !showEditCards), 1000);
       }
     }, 500);
 
@@ -32,7 +39,7 @@ export default function Card(
       {...attributes}
       {...listeners}
       className={`w-16 h-24 flex items-center justify-center rounded-lg outline-2 outline-gray-400 relative
-      ${(canVote || showEditCards) ? 'hover:scale-105 cursor-pointer rotate-y-0' : 'rotate-y-180'}
+      ${!flipped ? 'hover:scale-105 cursor-pointer rotate-y-0' : 'rotate-y-180'}
       ${isSelected ? 'scale-110 border-4 border-yellow-400' : ''}
       transform transition-all transform-3d`}
       onClick={(e) => {

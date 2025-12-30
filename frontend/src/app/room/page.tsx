@@ -8,7 +8,6 @@ import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import TextfieldName from "@/src/components/TextfieldName";
 import AlertDialog from "@/src/components/DialogMe";
-import { Button } from "@mui/material";
 import RoomPageIn from "@/src/components/Room";
 
 export default function RoomPage() {
@@ -28,9 +27,10 @@ export default function RoomPage() {
     };
     const handleLeaveRoom = (e: BeforeUnloadEvent) => {
       e.preventDefault();
+      console.log("Leaving room:", roomId);
 
       if (roomId && user) {
-        socket.emit("leaveRoom", { roomId: roomId, user: user });
+        socket.emit("leaveRoom", { user: user });
       }
     }
 
@@ -67,7 +67,7 @@ export default function RoomPage() {
       socket.emit("joinRoom", { roomId: roomId, user: user }, (res: IResRoom) => {
         if (res.success) {
           console.log("Joined room with ID:", roomId);
-          dispatch(setURL(roomId?`${window.location.origin}/room/#${roomId}`:""));
+          dispatch(setURL(roomId?`${window.location.origin}/room#${roomId}`:""));
         } else {
           console.error("Error joining room:", res.error);
           if (res.action === 0) {

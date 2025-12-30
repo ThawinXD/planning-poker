@@ -88,7 +88,7 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
       setIsRevealed(true);
     };
     const onUserVoted = (user: IRoomUser) => {
-      console.log("User voted:", user.name);
+      // console.log("User voted:", user.name);
       setUsers(prev => {
         return prev.map(u =>
           u.name === user.name ? { ...u, isVoted: true } : u
@@ -109,6 +109,9 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
     const onVoteResult = (voteResult: IVoteResult) => {
       setVoteResult(voteResult.votes);
     };
+    const onCardsUpdated = (cards: string[]) => {
+      setCards(cards);
+    };
 
 
     // Guard against duplicated listeners in dev (Fast Refresh / StrictMode)
@@ -121,6 +124,7 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
       socket.off("userVoted");
       socket.off("changeVoted");
       socket.off("voteResult");
+      socket.off("cardsUpdated");
     }
 
     socket.on("userJoined", onUserJoined);
@@ -131,6 +135,7 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
     socket.on("userVoted", onUserVoted);
     socket.on("changeVoted", onChangeVoted);
     socket.on("voteResult", onVoteResult);
+    socket.on("cardsUpdated", onCardsUpdated);
 
     return () => {
       socket.off("userJoined", onUserJoined);
@@ -141,6 +146,7 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
       socket.off("userVoted", onUserVoted);
       socket.off("changeVoted", onChangeVoted);
       socket.off("voteResult", onVoteResult);
+      socket.off("cardsUpdated", onCardsUpdated);
     };
   }, []);
 
@@ -200,7 +206,7 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
             u.name === user.name ? { ...u, isVoted: true } : u
           );
         });
-        console.log(`vote card: ${card}`);
+        // console.log(`vote card: ${card}`);
 
         if (!isRevealed) return;
         setEstimations(prev => {
@@ -226,28 +232,10 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
     setShowEditCards(!showEditCards);
   }
 
-  function handleChangeTextCard(oldText: string, newText: string) {
-    if (canVote || isRevealed) {
-      alert("Cannot edit cards while voting is in progress or after reveal.");
-      return;
-    }
-    if (newText.trim() === "") {
-      alert("Card text cannot be empty.");
-      return;
-    }
-    if (cards.includes(newText)) {
-      alert("Card text must be unique.");
-      return;
-    }
-    setCards(prev => prev.map(c => (c === oldText ? newText : c)));
-  }
-
-
   function handleUpdateCard(cards: string[]) {
-    
-    socket.emit("updateCards", { roomId, cards }, (res: IResRoom) => {
+    socket.emit("updateCards", { roomId, cards }, (res: { success: boolean; cards?: string[]; error?: string }) => {
       if (res.success) {
-        console.log("Update cards:", cards);
+        // console.log("Update cards:", cards);
         setCards(cards);
       } else {
         console.error("Error updating cards:", res.error);
@@ -281,7 +269,7 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
             <p>Room ID: {roomId}</p>
             <p>Host: {host}</p>
             <p>Users: {users.map(u => u.name).join(", ")}</p>
-            <p>Cards: {cards.join(", ")}</p>
+            <p>Cards: {cards ? cards.join(", ") : ""}</p>
             <p>Can Vote: {canVote ? "Yes" : "No"}</p>
             <p>Revealed: {isRevealed ? "Yes" : "No"}</p>
             <div>Estimations:</div>
@@ -331,7 +319,6 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
           handleVote(card)
         }}
         showEditCards={showEditCards}
-        onChangeTextCard={handleChangeTextCard}
         updateCards={handleUpdateCard}
       />
     </div>

@@ -18,8 +18,7 @@ export default function TextfieldName(
         fullWidth
         margin="normal"
         sx={{
-          '& .MuiFilledInput-root': { backgroundColor: 'rgb(241 245 249)' },
-          '& .MuiFilledInput-root.Mui-focused': { backgroundColor: 'rgb(241 245 249)' },
+          backgroundColor: "white",
         }}
         value={name}
         onChange={(e) => {
