@@ -164,6 +164,12 @@ export function roomController(socket) {
       return;
     }
 
+    if (rooms[roomId].host !== socket.data.id) {
+      socket.emit("error", { message: "Only the host can kick users" });
+      res({ success: false, error: "Only the host can kick users" });
+      return;
+    }
+
     try {
       const userToKick = rooms[roomId].users.find((user) => user.name === name);
       if (!userToKick) {
