@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import StoreProvider from "./StoreProvider";
+import RouteListener from "../components/routeListener";
 import Header from "../components/Header";
 import "./globals.css";
 
@@ -31,6 +32,7 @@ export default function RootLayout({
       >
         <StoreProvider>
           <Header />
+          <RouteListener />
           {children}
         </StoreProvider>
       </body>
