@@ -113,7 +113,6 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
       setCards(cards);
     };
 
-
     // Guard against duplicated listeners in dev (Fast Refresh / StrictMode)
     if (process.env.NODE_ENV === "development") {
       socket.off("userJoined");
@@ -156,7 +155,12 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
       alert("Only the host can start the vote.");
       return;
     }
-    // Rely on the "voteStarted" event to refresh; avoid double getRoomData()
+
+    if (showEditCards) {
+      alert("Cannot start vote while editing cards.");
+      return;
+    }
+
     socket.emit("startVote", { roomId, user }, (res: IResRoom) => {
       if (!res.success) {
         console.error("Error starting vote:", res.error);
@@ -266,12 +270,9 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
       <div>
         {roomId ? (
           <div>
-            <p>Room ID: {roomId}</p>
             <p>Host: {host}</p>
             <p>Users: {users.map(u => u.name).join(", ")}</p>
-            <p>Cards: {cards ? cards.join(", ") : ""}</p>
-            <p>Can Vote: {canVote ? "Yes" : "No"}</p>
-            <p>Revealed: {isRevealed ? "Yes" : "No"}</p>
+            <p>Can Vote: {canVote ? "Yes" : "No"} Revealed: {isRevealed ? "Yes" : "No"}</p>
             <div>Estimations:</div>
             {estimations ? estimations.map(estimation => (
               <div key={estimation.name}>{estimation.name}: {estimation.vote}</div>
@@ -286,32 +287,17 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
       <Table
         users={users}
         estimations={estimations}
+        canVote={canVote}
         isRevealed={isRevealed}
+        showEditCards={showEditCards}
         voteResult={voteResult}
         host={host}
         user={user}
+        onStartVote={handleStartVote}
+        onRevealCards={handleRevealCards}
+        onResetVote={handleResetVote}
+        onEditCards={handleEditCards}
       />
-      {user.name === host ?
-        <div className="m-4">
-          <div className="gap-4">
-            <Button variant="contained" color="primary" onClick={handleStartVote} className="mr-2">
-              Start Vote
-            </Button>
-            <Button variant="contained" color="secondary" onClick={handleRevealCards} className="mr-2">
-              Reveal Cards
-            </Button>
-            <Button variant="outlined" onClick={handleResetVote}>
-              Reset Vote
-            </Button>
-          </div>
-          <div className="mt-4">
-            <Button variant="contained" color="inherit" onClick={handleEditCards}>
-              <p className="text-black">Edit Cards</p>
-            </Button>
-          </div>
-        </div>
-        : ""
-      }
       <CardHolder
         cards={cards}
         canVote={canVote}

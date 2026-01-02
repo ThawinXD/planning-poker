@@ -38,7 +38,7 @@ export default function Card(
       style={style}
       {...attributes}
       {...listeners}
-      className={`w-16 h-24 flex items-center justify-center rounded-lg outline-2 outline-gray-400 relative
+      className={`flex-none w-16 h-24 flex items-center justify-center rounded-lg outline-2 outline-gray-400 relative
       ${!flipped ? 'hover:scale-105 cursor-pointer rotate-y-0' : 'rotate-y-180'}
       ${isSelected ? 'scale-110 border-4 border-yellow-400' : ''}
       transform transition-all transform-3d`}
