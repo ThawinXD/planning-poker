@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
 import { AppDispatch, useAppSelector } from "../lib/store";
-import { IUser } from "@/interfaces";
+import { IResRoom, IUser } from "@/interfaces";
 import { Button, Link } from "@mui/material";
 import { setURL } from "../lib/features/user";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
+import socket from "../socket";
 
 export default function Header() {
   const router = useRouter();
@@ -23,6 +24,14 @@ export default function Header() {
   }
 
   function handleLeaveRoom() {
+    if (!user || !url) return;
+    socket.emit("leaveRoom", { user }, (res: IResRoom) => {
+      if (res.success) {
+        console.log("Left room successfully");
+      } else {
+        console.error("Error leaving room:", res.error);
+      }
+    });
     dispatch(setURL(null));
     router.push("/");
   }

@@ -24,8 +24,6 @@ export default function Card(
     const timer = setTimeout(() => {
       if (text !== card) {
         onChangeTextCard(text);
-        setFlipped(false);
-        setTimeout(() => setFlipped(!canVote && !showEditCards), 1000);
       }
     }, 500);
 
@@ -47,6 +45,10 @@ export default function Card(
         if (!canVote) return;
         onSelectCard(card)}
       }>
+      {/* <p className={`z-999 bg-red-600
+        ${flipped ? 'rotate-y-180' : 'rotate-y-0'}`}>
+        canVote: {canVote.toString()} - isSelected: {isSelected.toString()} - showEditCards: {showEditCards.toString()} - flipped: {flipped.toString()}
+      </p> */}
       <div className="bg-white w-full h-full absolute top-0 left-0 flex items-center justify-center rounded-lg backface-hidden">
         {showEditCards ? (
           <input
