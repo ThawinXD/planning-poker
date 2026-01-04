@@ -52,20 +52,26 @@ export default function CardHolder(
   }
 
   function addCard() {
-    if (showEditCards)
-      setCards(prev => [...prev, Math.floor(Math.random() * 100).toString()]);
+    if (!showEditCards) return;
+    let newCard = Math.floor(Math.random() * 100).toString();
+    let counter = 0;
+    while (inCards.includes(newCard)) {
+      newCard = Math.floor(Math.random() * 100).toString();
+      counter++;
+      if (counter > 100) break;
+    }
+    if (counter > 100) newCard = `Card${inCards.length + 1}`;
+    setCards(prev => [...prev, newCard]);
   }
 
   function deleteCard(card: string) {
-    if (showEditCards) {
-      setCards(prev => prev.filter(c => c !== card));
-    }
+    if (!showEditCards) return;
+    setCards(prev => prev.filter(c => c !== card));
   }
 
   function onChangeTextCard(oldCard: string, newCard: string) {
-    if (showEditCards) {
-      setCards(prev => prev.map(c => c === oldCard ? newCard : c));
-    }
+    if (!showEditCards) return;
+    setCards(prev => prev.map(c => c === oldCard ? newCard : c));
   }
 
   return (
@@ -77,7 +83,7 @@ export default function CardHolder(
         <p className="text-center text-gray-400 mb-4">Select a card to vote.</p>
       )}
       {showEditCards && (
-        <p className="text-center text-gray-400 mb-4">Drag and drop cards to reorder them. Click "+" to add a new card.</p>
+        <p className="text-center text-gray-400 mb-4">Drag and drop cards to reorder them. Edit card number by clicking on text and typing. Click "+" to add a new card.</p>
       )}
       <DndContext
         sensors={sensors}
@@ -117,7 +123,7 @@ export default function CardHolder(
                   addCard();
                 }}
               >
-                <span className="text-4xl text-green-400">+</span>
+                <span className="text-4xl text-green-400 select-none">+</span>
               </div>
             )}
             {showEditCards && (
@@ -128,7 +134,7 @@ export default function CardHolder(
                   setCards(cards);
                 }}
               >
-                <span className="text-4xl text-white">↻</span>
+                <span className="text-4xl text-white select-none">↻</span>
               </div>
             )}
             {showEditCards && (
@@ -139,7 +145,7 @@ export default function CardHolder(
                   updateCards && updateCards(inCards);
                 }}
               >
-                <span className="text-4xl text-blue-500">✓</span>
+                <span className="text-4xl text-blue-500 select-none">✓</span>
               </div>
             )}
           </div>

@@ -286,16 +286,8 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
     setShowEditCards(false);
   }
 
-  // TODO delete this debug section
-  function addUser() {
-    if (!roomId) return;
-
-    setUsers(prev => [...prev, { name: `User${prev.length + 1}`, isVoted: true }]);
-    setEstimations(prev => [...prev, { name: `User${prev.length + 1}`, vote: "5" }]);
-  }
-
   return (
-    <div>
+    <div className="w-full h-full flex flex-col items-center justify-center space-y-4 p-4">
       {showSnackbar && (
         <Snackbar
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
@@ -305,24 +297,6 @@ export default function RoomPageIn({ user, roomId }: { user: IUser; roomId: stri
           key={"topcenter"}
         />
       )}
-      <div>
-        {roomId ? (
-          <div>
-            <p>Host: {host}</p>
-            <p>Users: {users.map(u => u.name).join(", ")}</p>
-            <p>Can Vote: {canVote ? "Yes" : "No"} Revealed: {isRevealed ? "Yes" : "No"}</p>
-            {/* <div>Estimations:</div>
-            {estimations ? estimations.map(estimation => (
-              <div key={estimation.name}>{estimation.name}: {estimation.vote}</div>
-            )) : "No estimations yet"} */}
-            <div>Result Card:</div>
-            {voteResult ? voteResult.map(([vote, count], index) => (
-              <div key={index}>{vote}: {count}</div>
-            )) : "No results yet"}
-          </div>
-        ) : ""}
-      </div>
-      <Button variant="outlined" onClick={addUser}>[Debug] Add User</Button>
       <Table
         users={users}
         estimations={estimations}

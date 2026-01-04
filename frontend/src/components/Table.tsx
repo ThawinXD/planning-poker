@@ -3,6 +3,7 @@ import Player from "./Player";
 import { Button } from "@mui/material";
 import PlayerCard from "./playerCard";
 import { Fragment } from "react";
+import Result from "./Result";
 
 
 export default function Table(
@@ -19,39 +20,57 @@ export default function Table(
   return (
     <div className="flex items-center justify-center p-8 mt-8 mb-10">
       <div
-        className="relative rounded-full m-4 bg-blue-400 self-center mb-4 flex items-center justify-center"
+        className="relative rounded-full m-4 bg-blue-400 self-center mb-4 flex flex-col items-center justify-center"
         style={{
           width: width,
           height: height,
         }}
       >
+        <Result voteResult={voteResult} />
         {
-          host === user.name &&
-          <div className="flex flex-col gap-4">
-            {
-              !canVote && !showEditCards &&
-              <Button variant="contained" color="primary" onClick={() => onStartVote()} className="mr-2">
-                Start Vote
-              </Button>
-            }
-            {
-              canVote && !isRevealed && !showEditCards &&
-              <Button variant="contained" color="secondary" onClick={() => onRevealCards()} className="mr-2">
-                Reveal Cards
-              </Button>
-            }
-            {
-              canVote && isRevealed && !showEditCards &&
-              <Button variant="outlined" onClick={() => onResetVote()} sx={{ color: 'white', borderColor: 'white' }}>
-                Reset Vote
-              </Button>
-            }
-            {!showEditCards && !canVote && !isRevealed &&
-              <Button variant="contained" color="inherit" onClick={() => onEditCards()}>
-                <p className="text-black">Edit Cards</p>
-              </Button>
-            }
-          </div>
+          host === user.name ?
+            <div className="flex flex-col gap-4">
+              {
+                !canVote && !showEditCards &&
+                <Button variant="contained" color="primary" onClick={() => onStartVote()} className="mr-2">
+                  Start Vote
+                </Button>
+              }
+              {
+                canVote && !isRevealed && !showEditCards &&
+                <Button variant="contained" color="secondary" onClick={() => onRevealCards()} className="mr-2">
+                  Reveal Cards
+                </Button>
+              }
+              {
+                canVote && isRevealed && !showEditCards &&
+                <Button variant="outlined" onClick={() => onResetVote()} sx={{ color: 'white', borderColor: 'white' }}>
+                  Reset Vote
+                </Button>
+              }
+              {!showEditCards && !canVote && !isRevealed &&
+                <Button variant="contained" color="inherit" onClick={() => onEditCards()}>
+                  <p className="text-black">Edit Cards</p>
+                </Button>
+              }
+            </div>
+            : <div className="flex">
+              { !canVote && !isRevealed &&
+                <p className="text-white">
+                  Wait for <span className="font-bold inline">{host}</span> to start the vote.
+                </p>
+              }
+              { canVote && !isRevealed &&
+                <p className="text-white">
+                  Select a card.
+                </p>
+              }
+              { canVote && isRevealed &&
+                <p className="text-white">
+                  Top vote card(s) revealed.
+                </p>
+              }
+            </div>
         }
         {
           users.map((u, index) => {
