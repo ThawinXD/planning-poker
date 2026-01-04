@@ -84,8 +84,15 @@ export default function RoomPage() {
       setIsSocketConnected(false);
     }
 
+    function onRoomClosed() {
+      console.log("Room has been closed by the host.");
+
+      setShowAlert(true);
+    }
+
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
+    socket.on("roomClosed", onRoomClosed);
 
     if (socket.connected) {
       onConnect();
@@ -96,6 +103,7 @@ export default function RoomPage() {
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
+      socket.off("roomClosed", onRoomClosed);
     };
   }, [dispatch, roomId, user]);
 
@@ -140,16 +148,7 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="flex flex-col">
-      {/* <Button
-        variant="contained"
-        color="primary"
-        onClick={() => {
-          dispatch(setUserName(""));
-        }}
-      >
-        Reset Name
-      </Button> */}
+    <div className="flex flex-col w-full h-[85vh] items-center justify-center">
       {showNamePrompt && (
         <div className="flex absolute items-center justify-center inset-0 bg-gray-800 bg-opacity-75 z-50">
           <div className="flex flex-col p-4 m-4">
