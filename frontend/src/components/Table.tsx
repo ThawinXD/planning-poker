@@ -2,6 +2,7 @@ import { IEstimation, IRoomUser, IUser, IVoteResult } from "@/interfaces";
 import Player from "./Player";
 import { Button } from "@mui/material";
 import PlayerCard from "./playerCard";
+import { Fragment } from "react";
 
 
 export default function Table(
@@ -115,9 +116,8 @@ export default function Table(
             }
 
             return (
-              <>
+              <Fragment key={u.name}>
                 <Player
-                  key={u.name}
                   name={u.name}
                   isVoted={u.isVoted}
                   cardPicked={isRevealed ? cardPicked : null}
@@ -125,13 +125,12 @@ export default function Table(
                   y={py}
                 />
                 <PlayerCard
-                  key={`card-${u.name}`}
                   x={cx}
                   y={cy}
                   isVoted={u.isVoted}
                   cardPicked={isRevealed ? cardPicked : null}
                 />
-              </>
+              </Fragment>
             )
           })
         }
